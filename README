@@ -1,11 +1,10 @@
-these scripts all save data into graphite unsing the correct
-timestamp.
+these scripts all save data into graphite unsing the correct timestamp.
 
-to actually contruct dashboards i would highly recommend
-looking into grafana.
+each loop will get a new timestamp, so execution time doesn't matter so much - however please ensure ntp works as expected.
 
-if you have puppet there are two excellent modules to set up
-a working graphite / grafana instance:
+to actually contruct dashboards i would highly recommend looking into grafana.
+
+if you have puppet there are two excellent modules to set up a working graphite / grafana instance:
 
 https://forge.puppetlabs.com/dwerder/graphite
 
