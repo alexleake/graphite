@@ -1,8 +1,3 @@
-although i do used some collectd modules to get ceph basics
-(i.e. OSD count), i found most scripts to either report
-ceph stats incorrectly - or in a format which was not so 
-easy to understand.
+although i do used some collectd modules to get ceph basics (i.e. OSD count), i found most scripts to either report ceph stats incorrectly - or in a format which was not so easy to understand.
 
-the script "ceph_iostat" does a rolling diff of some major
-cluster statistics (IOPs / kb(r) / kb(w)) so that you can
-easily tell which pool is using the most cluster time...
+the script "ceph_iostat" does a rolling diff of some major cluster statistics (IOPs / kb(r) / kb(w)) so that you can easily tell which pool is using the most cluster time...
