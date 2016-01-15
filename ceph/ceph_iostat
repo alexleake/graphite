@@ -1,0 +1,103 @@
+#!/usr/bin/env python
+
+# written by: 
+# Alex Leake https://github.com/alexleake
+# and
+# Mesar Hameed https://github.com/mhameed
+
+import json
+import rados
+import time
+import socket
+import sys
+
+graphite_host = ''
+graphite_port = 
+prefix = ''
+sock = socket.create_connection((graphite_host, graphite_port))
+
+r = rados.Rados(conffile="/etc/ceph/ceph.conf")
+r.connect()
+
+_poolConnectionCache = {}
+
+def setupPoolConnections():
+    for pool in r.list_pools():
+        if not pool in _poolConnectionCache:
+            _poolConnectionCache[pool] = r.open_ioctx(pool)
+
+def shutdownPoolConnections():
+    for pool, conn in _poolConnectionCache.items():
+        conn.close()
+
+_poolDataCache = {}
+def printPoolData():
+    for pool, conn in _poolConnectionCache.items():
+        oldData = _poolDataCache.get(pool, {})
+        newData = conn.get_stats()
+        _poolDataCache[pool] = newData
+        if not oldData:
+            _poolDataCache[pool] = newData
+            continue
+        rd_delta = newData['num_rd'] - oldData['num_rd']
+        wr_delta = newData['num_wr'] - oldData['num_wr']
+        rd_kb_delta = newData['num_rd_kb'] - oldData['num_rd_kb']
+        wr_kb_delta = newData['num_wr_kb'] - oldData['num_wr_kb']
+
+        now = int(time.time())
+
+        rops = ("{prefix}.pool.{name}.rops {rd} {time}\n".format(
+            prefix=prefix,
+            name=pool, 
+            rd=rd_delta,
+            time=now,
+        ))
+        print rops
+        sock.send(rops)
+	time.sleep(0.1)
+
+        wops = ("{prefix}.pool.{name}.wops {wr} {time}\n".format(
+            prefix=prefix,
+            name=pool,
+            wr=wr_delta,
+            time=now,
+        ))
+        print wops
+        sock.send(wops)
+        time.sleep(0.1)
+
+        rd_kb = ("{prefix}.pool.{name}.rd_kb {s} {time}\n".format(
+            prefix=prefix,
+            name=pool,
+            s=rd_kb_delta,
+            time=now,
+        ))
+        print rd_kb
+        sock.send(rd_kb)
+        time.sleep(0.1)
+
+        wr_kb = ("{prefix}.pool.{name}.wr_kb {s} {time}\n".format(
+            prefix=prefix,
+            name=pool,
+            s=wr_kb_delta,
+            time=now,
+        ))
+        print wr_kb
+        sock.send(wr_kb)
+        time.sleep(0.1)
+
+def cleanup():
+    shutdownPoolConnections()
+    r.shutdown()
+
+try:
+    while True:
+        setupPoolConnections()
+        printPoolData()
+        time.sleep(5)
+	printPoolData()
+
+except KeyboardInterrupt:
+    cleanup
+finally:
+    cleanup
