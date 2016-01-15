@@ -1,0 +1,14 @@
+these scripts all save data into graphite unsing the correct
+timestamp.
+
+to actually contruct dashboards i would highly recommend
+looking into grafana.
+
+if you have puppet there are two excellent modules to set up
+a working graphite / grafana instance:
+
+https://forge.puppetlabs.com/dwerder/graphite
+
+and
+
+https://forge.puppetlabs.com/dwerder/grafana
